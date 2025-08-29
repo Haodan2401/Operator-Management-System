@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+{%load static%}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="{% static 'plugins/bootstrap-3.4.1-dist/css/bootstrap.css' %}">
+</head>
+<style>
+    .login{
+        width:400px;
+        border: 1px solid black;
+        border-radius: 10px;
+        margin: 0 auto;
+        margin-top: 40px;
+        padding: 30px;
+        box-shadow: 5px 5px 1px #dddddd;
+    }
+    .login h2{
+        text-align: center;
+    }
+</style>
+
+<body>
+<div>
+    <div class="login">
+        <h2>Login</h2>
+        <form method="POST" novalidate>
+            {% csrf_token %}
+            <div class="form-group">
+                <label >Username</label>
+                {{ form.username }}
+                <span style="color: red;">{{ form.username.errors.0 }}</span>
+            </div>
+            <div class="form-group">
+                <label >Password</label>
+                {{ form.password }}
+                <span style="color: red;">{{ form.password.errors.0 }}</span>
+            </div>
+            <div class="form-group" >
+                <label>Picture</label>
+                <div class="row">
+                    <div class="col-xs-7">
+                        {{ form.code }}
+                        <span style="color: red;">{{ form.code.errors.0 }}</span>
+                    </div>
+                    <div class="col-xs-5">
+                        <img id="image_code" src="/image/code/" style="width: 125px;height:35px">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+        </form>
+
+
+    </div>
+</div>
+<script src="{% static 'js/jquery-3.7.1.js' %}"></script>
+<script src="{% static 'plugins/bootstrap-3.4.1-dist/js/bootstrap.js' %}"></script>
+</body>
+</html>

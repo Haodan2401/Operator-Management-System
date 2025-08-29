@@ -1,0 +1,106 @@
+{% extends "layout.html" %}
+
+{% block content%}
+<div class="container">
+    <div class="panel panel-default">
+        <div class="panel-heading">Task List</div>
+        <div class="panel-body">
+            <form id="formAdd">
+                <div class="clearfix">
+                    {% for field in form %}
+                    <div class="col-xs-6">
+                        <div class="form-group" style="position: relative; margin-bottom: 20px">
+                            <label>{{ field.label }}</label>
+                            {{ field }}
+                            <span class="error-msg" style="color: red; position: absolute;"></span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="col-xs-12">
+                    <button id="btnAdd" type="button" class="btn btn-primary">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="panel panel-default">
+        <!-- Default panel contents -->
+        <div class="panel-heading">
+            <span class="glyphicon glyphicon-th-list" aria-hidden="true"></span>
+            Task List
+        </div>
+
+        <!-- Table -->
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Level</th>
+                <th>Assignee</th>
+                <th>Operations</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for obj in queryset %}
+            <tr>
+                <th>{{ obj.id }}</th>
+                <td>{{ obj.title }}</td>
+                <td>{{ obj.get_level_display }}</td>
+                <td>{{ obj.assignee.username }}</td>
+                <td>
+                    <a class="btn btn-primary btn-xs" href="#">edit</a>
+                    <a class="btn btn-danger btn-xs" href="#">delete</a>
+                </td>
+            </tr>
+            {% endfor%}
+
+
+            </tbody>
+        </table>
+    </div>
+    <ul class="pagination">
+        {{ page_string }}
+    </ul>
+</div>
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript">
+    $(function(){
+        bindBtnAddEvent();
+    })
+
+    function bindBtnAddEvent(){
+        $("#btnAdd").click(function(){
+
+            $(".error-msg").empty();
+
+            $.ajax({
+                url: "/task/add",
+                type: "POST",
+                data: $("#formAdd").serialize(),
+                dataType: "JSON",
+                success: function(res){
+                    console.log(res);
+                    if (res.status){
+                        alert("add successfully")
+                        // 用JS实现页面刷新
+                        location.reload();
+                    } else {
+                        console.log(res.error)
+                        $.each(res.error, function(name, data){
+                            console.log(name, data);
+                            $("#id_" + name).next().text(data[0])
+
+                        })
+                    }
+                }
+
+            })
+        })
+    }
+
+</script>
+{% endblock %}

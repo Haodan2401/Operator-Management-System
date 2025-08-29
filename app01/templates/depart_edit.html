@@ -1,0 +1,21 @@
+{% extends "layout.html"%}
+
+{% block content %}
+    <div class="container">
+        <div class="panel panel-default">
+            <div class="panel-heading">Edit Department</div>
+            <div class="panel-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" class="form-control" name="title" value="{{ row_object.title }}">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

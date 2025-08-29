@@ -1,0 +1,273 @@
+{% extends "layout.html" %}
+
+{% block content%}
+<div>
+    <div class="container">
+        <div style="margin-bottom:10px;">
+            <input type="button" id="btnAdd" value="Create New Order" class="btn btn-primary">
+        </div>
+
+        <div class="panel panel-default">
+            <!-- Default panel contents -->
+            <div class="panel-heading">
+                <span class="glyphicon glyphicon-th-list" aria-hidden="true"></span>
+                Order List
+            </div>
+
+            <!-- Table -->
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Order ID</th>
+                    <th>Title</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                    <th>Admin</th>
+                    <th>Operation</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for obj in queryset %}
+                <tr uid="{{ obj.id }}">
+                    <th>{{ obj.id }}</th>
+                    <td>{{ obj.oid }}</td>
+                    <td>{{ obj.title }}</td>
+                    <td>{{ obj.price }}</td>
+                    <td>{{ obj.get_status_display }}</td>
+                    <td>{{ obj.admin.username }}</td>
+
+                    <td>
+                        <input uid="{{ obj.id }}" class="btn btn-primary btn-xs btn-edit" type="button" value="Edit">
+                        <input uid="{{ obj.id }}" class="btn btn-danger btn-xs btn-delete" type="button" value="Delete">
+                    </td>
+                </tr>
+                {% endfor%}
+
+
+                </tbody>
+            </table>
+        </div>
+
+
+        <ul class="pagination">
+            {{ page_string }}
+        </ul>
+        <!-- Create Modal -->
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="myModalLabel"></h4>
+                    </div>
+                    <div class="modal-body">
+                        <form id="formAdd">
+                            <div class="clearfix">
+                                {% for field in form %}
+                                <div class="col-xs-6">
+                                    <div class="form-group" style="position: relative; margin-bottom: 20px">
+                                        <label>{{ field.label }}</label>
+                                        {{ field }}
+                                        <span class="error-msg" style="color: red; position: absolute;"></span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="btnSave">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Modal -->
+        <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="alert alert-danger alert-dismissible fade in" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                            aria-hidden="true">×</span></button>
+                    <h4>Are you ensure to delete?</h4>
+                    <p style="margin:10px 0;">All data will be clear after deleting!</p>
+                    <p style="text-align: right">
+                        <button id="btnConfirmDelete" type="button" class="btn btn-danger">Yes</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Back</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript">
+    var DELETE_ID;
+    var EDIT_ID;
+
+    $(function() {
+        bindBtnAddEvent();
+        bindBtnSaveEvent();
+        bindBtnDeleteEvent();
+        bindBtnConfirmDeleteEvent();
+        binBtnEditEvent();
+    })
+
+    function bindBtnAddEvent(){
+        $("#btnAdd").click(function(){
+            EDIT_ID = undefined;
+            $("#formAdd")[0].reset();
+            $("#myModalLabel").text("Create");
+            $('#myModal').modal("show");
+        });
+    }
+
+    function bindBtnSaveEvent(){
+        $("#btnSave").click(function(){
+
+            $(".error-msg").empty();
+            if(EDIT_ID){
+                doEdit();
+            }else{
+                doAdd();
+            }
+        });
+    }
+
+    function doAdd(){
+        $.ajax({
+            url: "/order/add/",
+            type: "POST",
+            data: $("#formAdd").serialize(),
+            dataType: "JSON",
+            success:function(res){
+                if (res.status){
+                    $("#formAdd")[0].reset();
+                    $('#myModal').modal("hide");
+                    location.reload()
+                } else {
+                    $.each(res.error, function(name, data){
+                        $("#id_" + name).next().text(data[0])
+                    })
+                }
+            }
+        })
+    }
+
+    function doEdit(){
+        $.ajax({
+            url: "/order/editPage/" + "?uid=" + EDIT_ID,
+            type: "POST",
+            data: $("#formAdd").serialize(),
+            dataType: "JSON",
+            success:function(res){
+                if (res.status){
+                    $("#formAdd")[0].reset();
+                    $('#myModal').modal("hide");
+                    location.reload()
+                } else {
+                    if(res.tips){
+                        alert(res.tips);
+                    }else{
+                        $.each(res.error, function(name, data){
+                            $("#id_" + name).next().text(data[0])
+                        })
+                    }
+                }
+            }
+        })
+    }
+
+
+
+    function bindBtnDeleteEvent(){
+        $(".btn-delete").click(function(){
+            // alert("click delete");
+            $('#deleteModal').modal("show");
+
+            var uid = $(this).attr("uid"); // button整了个uid类型，点击后能够在此获得当前的uid
+            DELETE_ID = uid; // 将uid赋值城全局变量
+        });
+    }
+
+    function bindBtnConfirmDeleteEvent(){
+        $("#btnConfirmDelete").click(function(){
+            $.ajax({
+                url: "/order/delete/",
+                type: "GET",
+                data: {
+                    uid: DELETE_ID
+                },
+                dataType: "JSON",
+                success:function(res){
+                    if(res.status){
+                        // alert("delete successfully");
+                        $('#deleteModal').modal("hide");
+
+                        $("tr[uid='" + DELETE_ID + "']").remove();
+                        DELETE_ID = 0;
+                        // location.reload();
+
+
+
+                    }else{
+                        alert(res.error);
+                    }
+                }
+            });
+        });
+    }
+
+    function binBtnEditEvent(){
+        $(".btn-edit").click(function(){
+            $("#formAdd")[0].reset();
+            var uid = $(this).attr("uid");
+            EDIT_ID = uid;
+
+            $.ajax({
+                url: "/order/edit/",
+                type: "GET",
+                data:{
+                    uid: uid
+                },
+                dataType: "JSON",
+                success: function(res){
+                    if(res.status){
+                        console.log(res.data)
+                        $.each(res.data, function(name, data){
+                            $("#id_" + name).val(data);
+                        })
+
+                        $("#myModalLabel").text("Edit");
+                        $('#myModal').modal("show");
+                    }else{
+                        alert(res.error);
+                    }
+                }
+
+            })
+        });
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+
+{% endblock%}
