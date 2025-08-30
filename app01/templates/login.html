@@ -60,5 +60,14 @@
 </div>
 <script src="{% static 'js/jquery-3.7.1.js' %}"></script>
 <script src="{% static 'plugins/bootstrap-3.4.1-dist/js/bootstrap.js' %}"></script>
+<script>
+    $(function(){
+        $("#image_code").click(function(){
+            var url = $(this).attr("src");
+            $(this).attr("src", url + "?");
+        });
+
+    })
+</script>
 </body>
 </html>
